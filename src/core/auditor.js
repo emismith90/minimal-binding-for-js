@@ -1,7 +1,8 @@
-function Auditor(model) {
-    var auditor, objectBrowser;
-    
-    function initialize() {
+import { ObjectBrowser } from './objectBrowser'
+
+export class Auditor {
+    constructor(model) {
+        let auditor;
         if(!model.__auditor) {
             auditor = this;
             auditor._target = model;
@@ -18,14 +19,11 @@ function Auditor(model) {
                 }
             };
             
-            objectBrowser = new ObjectBrowser();
-            objectBrowser.watchDeep(model, auditor);
+            let objectBrowser = new ObjectBrowser();
+            objectBrowser.traverse(model, auditor);
         }
         else {
             auditor = model.__auditor;
         }
     };
-
-    initialize();
-    return auditor;
 };

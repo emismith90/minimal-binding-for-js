@@ -1,39 +1,38 @@
-export class ArrayProxyMutator {
-    
-    constructor(traverse) {
-        let arrayProto = Array.prototype;
-        let arrayPrototype = Object.create(arrayProto);
+import { def, hasProto, isObject } from '../util/_'
 
-        ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'].forEach(
-            function (method) {
-            // cache original method
-            let original = arrayProto[method];
-            def(arrayPrototype, method, function mutator () {
-                let arguments$1 = arguments;
+export function ArrayProxyMutator(traverse) {
+    const arrayProto = Array.prototype;
+    var arrayPrototype = Object.create(arrayProto);
 
-                let i = arguments.length;
-                let args = new Array(i);
-                while (i--) {
-                    args[i] = arguments$1[i];
-                }
+    ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'].forEach(
+        function (method) {
+        // cache original method
+        let original = arrayProto[method];
+        def(arrayPrototype, method, function mutator () {
+            let arguments$1 = arguments;
 
-                let oldVal = this.length;
-                let newVal = original.apply(this, args);
-                
-                traverse(this, this.__auditor, this.__path); 
+            let i = arguments.length;
+            let args = new Array(i);
+            while (i--) {
+                args[i] = arguments$1[i];
+            }
 
-                this.__auditor._propertyChanged({
-                    property: this.__path,
-                    oldValue: oldVal,
-                    newValue: newVal,
-                });
+            let oldVal = this.length;
+            let newVal = original.apply(this, args);
+            
+            traverse(this, this.__auditor, this.__path); 
 
-                return newVal;
+            this.__auditor._propertyChanged({
+                property: this.__path,
+                oldValue: oldVal,
+                newValue: newVal,
             });
+
+            return newVal;
         });
-    };
+    });
     
-    interceptingMutatorMethods(target) {
+    function interceptingMutatorMethods(target) {
         if(target.__arrayMutationIntercepted) return;
 
         target.__arrayMutationIntercepted = true;
@@ -48,23 +47,24 @@ export class ArrayProxyMutator {
             }
         }
     };
+
+    return {
+        interceptingMutatorMethods: interceptingMutatorMethods
+    };
 }
 
-export class ObjectProxyMutator {
-     constructor(traverse){
-
-     };
-
-     interceptingMutatorMethods (model, key) {
+export function ObjectProxyMutator(traverse) {
+    function interceptingMutatorMethods(model, key) {
         const property = Object.getOwnPropertyDescriptor(model, key);
         if (property && property.configurable === false) {
             return;
         }
         
         let value = model[key];
-
-        if(value.__objectMutationIntercepted) return;
-        value.__objectMutationIntercepted = true;
+        if(isObject(value)){
+            if(value.__objectMutationIntercepted) return;
+            value.__objectMutationIntercepted = true;
+        }
 
         const setter = property && property.set;
         const getter = property && property.get;
@@ -97,6 +97,10 @@ export class ObjectProxyMutator {
                 });
             }
         });
+    };
+
+    return {
+        interceptingMutatorMethods: interceptingMutatorMethods
     };
 }
 

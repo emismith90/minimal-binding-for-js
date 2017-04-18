@@ -1,24 +1,23 @@
 import { ArrayProxyMutator, ObjectProxyMutator } from './mutators'
+import { isArray, isObject } from '../util/_'
 
-export class ObjectBrowser {
-    constructor() {
-        this.arrayMutator = new ArrayProxyMutator(traverse);
-        this.objectMutator = new ObjectProxyMutator(traverse);
-    }
+export function ObjectBrowser() {
+    const arrayMutator = new ArrayProxyMutator(traverse);
+    const objectMutator = new ObjectProxyMutator(traverse);
 
-    traverse(model, auditor, path) {
+    function traverse(model, auditor, path) {
         if(!isObject(model)) return;
 
         model.__auditor = auditor;
         model.__path = path;
-        if (Array.isArray(model)) {
+        if (isArray(model)) {
             loopThroughArray(model);
         } else {
             loopThroughKeys(model);
         }
     }
 
-    loopThroughKeys(model) {
+    function loopThroughKeys(model) {
         const keys = Object.keys(model);
         for (var i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -28,18 +27,22 @@ export class ObjectBrowser {
             if(key.startsWith('__')) continue;
             
             objectMutator.interceptingMutatorMethods(model, key);
-
+            
             const propPath = model.__path ? model.__path + '.' + key : key;
             traverse(value, model.__auditor, propPath);
         }
     };
 
-    loopThroughArrayfunction (arrs) {
+    function loopThroughArray(arrs) {
         arrayMutator.interceptingMutatorMethods(arrs);
 
         for (var i = 0, l = arrs.length; i < l; i++) {
             traverse(arrs[i], arrs.__auditor, arrs.__path + '['+ i +']');
         }
+    };
+
+    return {
+        traverse: traverse
     };
 }
 
