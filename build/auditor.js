@@ -1,5 +1,4 @@
 /*!
- * auditor.js
  * (c) 2017 Hung Le
  * Released under the MIT License.
  */

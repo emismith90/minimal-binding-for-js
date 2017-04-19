@@ -28,7 +28,11 @@
 //     }
 // })(jQuery);
 
+import '../../external/sizzle/dist/sizzle';
 
-function ViewModel(vm) {
-    var auditor;
-}
+export class Component {
+    constructor(data) {
+        this.$view = Sizzle(data.el)[];
+        this.$elements = Sizzle('[vm-prop]', this.$view);
+    }
+};

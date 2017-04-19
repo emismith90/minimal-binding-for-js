@@ -5,6 +5,8 @@
  */
 (function ($) {
     $(document).ready(function() {
+        var component = new Component({el: '#my-app'})
+
         var viewmodel = {
             $model: { 
                 name: 'Hung',
